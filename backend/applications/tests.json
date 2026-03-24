@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Сохранение заявки",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Иван Иванов",
+        "email": "ivan@example.com",
+        "phone": "+79001234567",
+        "deposit": "1000"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

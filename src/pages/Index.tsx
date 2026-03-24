@@ -21,12 +21,123 @@ import {
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 
+const APPLICATIONS_URL = "https://functions.poehali.dev/ea088cc1-a6df-402b-8c71-3591faec3a27";
+
 const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", deposit: "" });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(APPLICATIONS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess(true);
+        setFormData({ name: "", email: "", phone: "", deposit: "" });
+      } else {
+        setError(data.error || "Ошибка. Попробуйте ещё раз.");
+      }
+    } catch {
+      setError("Ошибка соединения. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#36393f] text-white overflow-x-hidden">
+      {/* Модальная форма регистрации */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-[#36393f] rounded-lg w-full max-w-md border border-[#202225] shadow-xl">
+            <div className="flex items-center justify-between p-5 border-b border-[#202225]">
+              <div>
+                <h2 className="text-white text-xl font-bold">Заявка на доступ</h2>
+                <p className="text-[#b9bbbe] text-sm mt-0.5">CryptoHFT — высокочастотная торговля BTC</p>
+              </div>
+              <Button variant="ghost" className="text-[#b9bbbe] hover:text-white hover:bg-[#40444b] p-2" onClick={() => { setShowModal(false); setSuccess(false); setError(""); }}>
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {success ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-[#3ba55c] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Icon name="Check" size={32} className="text-white" />
+                </div>
+                <h3 className="text-white text-lg font-bold mb-2">Заявка отправлена!</h3>
+                <p className="text-[#b9bbbe] text-sm mb-6">Мы свяжемся с вами в ближайшее время.</p>
+                <Button className="bg-[#5865f2] hover:bg-[#4752c4] text-white px-8" onClick={() => { setShowModal(false); setSuccess(false); }}>
+                  Закрыть
+                </Button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                <div>
+                  <label className="block text-[#b9bbbe] text-xs font-semibold uppercase tracking-wide mb-1.5">Имя и фамилия</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Иван Иванов"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-[#202225] border border-[#40444b] rounded text-white placeholder-[#72767d] px-3 py-2 text-sm focus:outline-none focus:border-[#5865f2]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#b9bbbe] text-xs font-semibold uppercase tracking-wide mb-1.5">Email</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="ivan@example.com"
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-[#202225] border border-[#40444b] rounded text-white placeholder-[#72767d] px-3 py-2 text-sm focus:outline-none focus:border-[#5865f2]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#b9bbbe] text-xs font-semibold uppercase tracking-wide mb-1.5">Телефон</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="+7 900 123-45-67"
+                    value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full bg-[#202225] border border-[#40444b] rounded text-white placeholder-[#72767d] px-3 py-2 text-sm focus:outline-none focus:border-[#5865f2]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#b9bbbe] text-xs font-semibold uppercase tracking-wide mb-1.5">Размер депозита (USD)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="1000"
+                    value={formData.deposit}
+                    onChange={e => setFormData({ ...formData, deposit: e.target.value })}
+                    className="w-full bg-[#202225] border border-[#40444b] rounded text-white placeholder-[#72767d] px-3 py-2 text-sm focus:outline-none focus:border-[#5865f2]"
+                  />
+                </div>
+                {error && <p className="text-red-400 text-sm">{error}</p>}
+                <Button type="submit" disabled={loading} className="w-full bg-[#5865f2] hover:bg-[#4752c4] text-white font-semibold py-2.5 mt-2">
+                  {loading ? "Отправка..." : "Отправить заявку"}
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
       {/* Навигация в стиле Discord */}
       <nav className="bg-[#2f3136] border-b border-[#202225] px-4 sm:px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -44,7 +155,7 @@ const Index = () => {
               <Icon name="LineChart" size={16} className="mr-2" />
               Результаты
             </Button>
-            <Button className="bg-[#5865f2] hover:bg-[#4752c4] text-white px-6 py-2 rounded text-sm font-medium">
+            <Button className="bg-[#5865f2] hover:bg-[#4752c4] text-white px-6 py-2 rounded text-sm font-medium" onClick={() => setShowModal(true)}>
               Начать торговлю
             </Button>
           </div>
@@ -65,7 +176,7 @@ const Index = () => {
                 <Icon name="LineChart" size={16} className="mr-2" />
                 Результаты
               </Button>
-              <Button className="bg-[#5865f2] hover:bg-[#4752c4] text-white px-6 py-2 rounded text-sm font-medium">
+              <Button className="bg-[#5865f2] hover:bg-[#4752c4] text-white px-6 py-2 rounded text-sm font-medium" onClick={() => setShowModal(true)}>
                 Начать торговлю
               </Button>
             </div>
@@ -443,7 +554,7 @@ const Index = () => {
 
             <div className="mt-6">
               <h3 className="text-[#8e9297] text-xs font-semibold uppercase tracking-wide mb-3">Старт</h3>
-              <Button className="w-full bg-[#5865f2] hover:bg-[#4752c4] text-white text-sm font-medium py-2 rounded">
+              <Button className="w-full bg-[#5865f2] hover:bg-[#4752c4] text-white text-sm font-medium py-2 rounded" onClick={() => setShowModal(true)}>
                 Начать торговлю
               </Button>
               <p className="text-[#8e9297] text-xs mt-2 text-center">Минимальный депозит $500</p>
